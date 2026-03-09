@@ -190,7 +190,7 @@ async def check_game_and_predict(session: aiohttp.ClientSession):
                 reason = "Pattern အသစ်ဖြစ်နေသဖြင့် သမိုင်းကြောင်းအရ တွက်ချက်ထားသည်"
                 
                 MAX_PATTERN_LENGTH = 20
-                MIN_PATTERN_LENGTH = 10
+                MIN_PATTERN_LENGTH = 15
                 pattern_found = True
                 
                 for current_len in range(MAX_PATTERN_LENGTH, MIN_PATTERN_LENGTH - 1, -1):
