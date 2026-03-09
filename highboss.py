@@ -80,10 +80,10 @@ async def login_and_get_token(session: aiohttp.ClientSession):
         'phonetype': 1,
         'logintype': 'mobile',
         'packId': '',
-        'deviceId': '',
+        'deviceId': '51ed4ee0f338a1bb24063ffdfcd31ce6',
         'language': 7,
-        'random': '',
-        'signature': '',
+        'random': '917a4606cf0140449f628bbf80a114b4',
+        'signature': '221A1FE8611A88CFE0A05A3B7594652F',
         'timestamp': 1773024142,
     }
     try:
