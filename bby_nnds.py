@@ -410,17 +410,21 @@ class UltraMasterEngine:
     def analyze(self, docs: List[Dict[str, Any]]) -> Tuple[str, float, Dict[str, float]]:
         """ ဒေတာများကို သရုပ်ခွဲ၍ နောက်ဆုံးခန့်မှန်းချက်ကို ထုတ်ပေးသည် """
         if len(docs) < 50: 
-            return "BIG", 50.0, {}
+            return random.choice(["BIG", "SMALL"]), random.uniform(50.1, 54.9), {}
         
         try:
             sizes = [d.get('size', 'BIG') for d in reversed(docs)]
             nums = [int(d.get('number', 0)) for d in reversed(docs)]
             pars = [d.get('parity', 'EVEN') for d in reversed(docs)]
             
+            # 💡 [FIX] Market Baseline ရှာခြင်း
+            baseline_b = sizes.count('BIG') / len(sizes)
+            if baseline_b == 0 or baseline_b == 1:
+                baseline_b = 0.5 
+
             X, y, curr_X = self.fe.prepare_data(sizes, nums, pars)
             
             probs = {}
-            # Run Statistical & Sequence Models
             probs['markov'] = MarkovEngine.predict(sizes)
             probs['ngram'] = NGramEngine.predict(sizes)
             probs['monte'] = MonteCarloEngine.predict(sizes)
@@ -428,31 +432,35 @@ class UltraMasterEngine:
             probs['entropy'] = EntropyEngine.predict(sizes)
             probs['lstm'] = self.lstm.predict(sizes)
             
-            # Run Machine Learning Models
             if X is not None and len(X) > 10:
                 probs['rf'], probs['gb'] = self.trees.predict(X, y, curr_X)
                 probs['bayes'] = self.bayes.predict(X, y, curr_X)
             else:
-                probs['rf'] = probs['gb'] = probs['bayes'] = 0.5
+                probs['rf'] = probs['gb'] = probs['bayes'] = baseline_b
                 
-            # Save state for Optimizer learning
             self.last_probs = {k: float(v) for k, v in probs.items()}
             
-            # Apply Weighted Voting
             w = self.opt.weights
             final_b = sum(probs[k] * w.get(k, 0.1) for k in probs)
             
-            final_pred = "BIG" if final_b > 0.5 else "SMALL"
+            # 💡 [FIX] Baseline ဖြင့် နှိုင်းယှဉ်ခြင်း (BIG ငြိခြင်းကို ကာကွယ်ရန်)
+            if final_b > baseline_b:
+                final_pred = "BIG"
+            elif final_b < baseline_b:
+                final_pred = "SMALL"
+            else:
+                final_pred = random.choice(["BIG", "SMALL"])
             
             # Confidence Calculation
-            raw_conf = final_b if final_b > 0.5 else (1.0 - final_b)
+            deviation = abs(final_b - baseline_b)
+            raw_conf = 0.5 + (deviation * 2.5)
             conf = min(max(float(raw_conf) * 100, 51.0), 99.0)
             
             return final_pred, round(conf, 1), self.last_probs
             
         except Exception as e:
             logger.error(f"Master Engine Error: {e}")
-            return "BIG", 50.0, {}
+            return random.choice(["BIG", "SMALL"]), 50.0, {}
 
 # =========================================================================
 # 💰 MODULE 6: TELEGRAM UI & PRESENTATION
