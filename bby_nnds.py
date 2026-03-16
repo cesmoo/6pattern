@@ -32,6 +32,7 @@ from aiogram.client.default import DefaultBotProperties
 # --- 🧠 ULTRA AI & DATA SCIENCE LIBRARIES ---
 import numpy as np
 import scipy.stats as stats
+import random
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
 from sklearn.naive_bayes import GaussianNB
 from sklearn.preprocessing import StandardScaler
@@ -417,12 +418,13 @@ class UltraMasterEngine:
             nums = [int(d.get('number', 0)) for d in reversed(docs)]
             pars = [d.get('parity', 'EVEN') for d in reversed(docs)]
             
-            # 💡 [FIX] Market Baseline ရှာခြင်း
+            # Market Baseline ရှာခြင်း
             baseline_b = sizes.count('BIG') / len(sizes)
             if baseline_b == 0 or baseline_b == 1:
                 baseline_b = 0.5 
 
-            X, y, curr_X = self.fe.prepare_data(sizes, nums, pars)
+            # 💡 [FIXED] 'prepare_data' အစား 'extract_features' ဟု အမည်မှန်ပြင်ထားသည်
+            X, y, curr_X = self.fe.extract_features(sizes, nums, pars)
             
             probs = {}
             probs['markov'] = MarkovEngine.predict(sizes)
@@ -443,7 +445,7 @@ class UltraMasterEngine:
             w = self.opt.weights
             final_b = sum(probs[k] * w.get(k, 0.1) for k in probs)
             
-            # 💡 [FIX] Baseline ဖြင့် နှိုင်းယှဉ်ခြင်း (BIG ငြိခြင်းကို ကာကွယ်ရန်)
+            # Baseline ဖြင့် နှိုင်းယှဉ်ခြင်း (BIG ငြိခြင်းကို ကာကွယ်ရန်)
             if final_b > baseline_b:
                 final_pred = "BIG"
             elif final_b < baseline_b:
